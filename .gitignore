@@ -1,5 +1,12 @@
 .DS_Store
 
-client/node_modules/
-client/.env
-client/dist/
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/

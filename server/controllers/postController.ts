@@ -54,7 +54,7 @@ export const generatePost = async (req: AuthRequest, res: Response): Promise<voi
 
         // Generate Text
         const textResponse = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.6-flash",
             contents: `Generate a social media post based on this prompt: "${prompt}".
             Tone: ${tone}.
             Include relevant hashtags.
@@ -83,18 +83,14 @@ export const generatePost = async (req: AuthRequest, res: Response): Promise<voi
                     if(leonardoKey){
                         // Use Leonardo.ai for image generation
                         const leoResponse = await axios.post(
-                            "https://cloud.leonardo.ai/api/rest/v2/generations",
+                            "https://cloud.leonardo.ai/api/rest/v1/generations",
                             {
-                                "public": false,
-                                "model": "gpt-image-2",
-                                "parameters": {
-                                    "quality": "LOW",
-                                    "prompt": imagePrompt,
-                                    "quantity": 1,
-                                    "width": 1024,
-                                    "height": 1024,
-                                    "prompt_enhance": "OFF"
-                                }
+                                prompt: imagePrompt,
+                                num_images: 1,
+                                width: 1024,
+                                height: 1024,
+                                public: false,
+                                alchemy: true,
                             },
                             {
                                 headers:{
@@ -105,7 +101,10 @@ export const generatePost = async (req: AuthRequest, res: Response): Promise<voi
 
                             }
                         )
-                        const generationId = leoResponse.data.generate.generationId;
+                        const generationId = leoResponse.data?.sdGenerationJob?.generationId;
+                        if (!generationId) {
+                            throw new Error("Leonardo did not return a generation ID.");
+                        }
                         const tempUrl = await pollLeonardoJob(generationId, leonardoKey);
 
                         // Upload to Cloudinary for persistence
